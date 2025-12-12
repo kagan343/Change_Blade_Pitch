@@ -1,0 +1,23 @@
+function changedBladeStrct = changeViaLead(profile_strc, cp_strct, angle_delta_value)
+
+    % Set angle for zeroing, angle = leading edge angle
+    %zero_angle = cp_strct.leading_angle;
+    
+    % Create copy of profile_strc
+    changedBladeStrct = profile_strc;
+
+    % Iterate over each element in profile
+    for i = 1:numel(profile_strc)
+        current_row = profile_strc(i); % Grab current row in strc
+
+        fprintf("Loop disp(i)
+        % Changed 1/2 angle via Z, 1/2 angle via T
+        changedBladeStrct(i).Z = editSpanZ(current_row.Z, current_row.Y, cp_strct, angle_delta_value);
+        changedBladeStrct(i).Y = editSpanY(current_row.Z, current_row.Y, cp_strct, angle_delta_value);
+
+    end
+    
+
+
+
+end

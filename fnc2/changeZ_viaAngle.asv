@@ -1,0 +1,62 @@
+function [z_new, t_new] = changeZ_viaAngle(r, theta, z_point, t_point, angle_delta_value, z_med, t_at_med, i, n);
+
+    % Set wanted global angle
+    wanted_angle = theta + angle_delta_value;
+
+    % Safegaurd for quad 4 to quad 1
+    if wanted_angle > 360
+        % angle delta value might mush quad 4 back into quad 1+
+        % this code is working assuming angle_delta_value won't
+        % be > 360, which physically shouldn't happen for blades
+        wanted_angle = wanted_angle - 360;
+    end
+
+    % Set ratio of original deltaZ and deltaT
+    ratio = abs(z_point-z_med) / abs(t_point-t_at_med);
+
+    
+    
+
+
+
+    % If z > z_med, add calcuated z to z_med (quad 1 and 4)
+    % If z < z_med, subtract calcuated z from z_med (quad 2 and 3)
+    if wanted_angle > 0 && wanted_angle < 90 % quad 1
+        % t_new = t_at_med + z_med / (ratio - tand(wanted_angle));
+        % z_new = ratio * (t_new + t_at_med) + z_med;
+        z_new = z_med + cosd(wanted_angle)*r;
+        t_new = t_at_med + sind(wanted_angle)*r;
+
+
+    elseif wanted_angle > 90 && wanted_angle < 180 % quad 2
+        wanted_reduced = wanted_angle - 90;
+        z_new = sind(wanted_angle)*r - z_med;
+        t_new = cosd(wanted_angle)*r + t_at_med;
+
+
+    elseif wanted_angle > 180 && wanted_angle < 270
+        new_z = z_med - (deltaT / tand(wanted_angle - 180)); % quad 3
+
+
+    elseif wanted_angle > 270 && wanted_angle < 360
+        new_z = (tand(wanted_angle - 270) * deltaT) + z_med; % quad 4
+
+
+    else % if starting point angle will be 0
+        new_z = z_point; % Set it to original point
+    end
+
+    if i == 222 && n == 3
+
+        disp("theta")
+        disp(theta)
+        disp("wanted_angle:")
+        disp(wanted_angle)
+        disp("wanted_angle (reduced)")
+        disp(wanted_angle)
+        disp("new_z:")
+        disp(new_z)
+    end
+
+
+end

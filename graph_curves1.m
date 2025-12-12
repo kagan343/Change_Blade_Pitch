@@ -1,0 +1,216 @@
+% plot_blade_curves.m
+% Reads hub.curve, shroud.curve, and profile.curve and plots the 3D lines.
+% Put this script in the same folder as the .curve files and run it.
+
+clear; clc; close all;
+
+addpath(genpath('Scaling Code'))
+addpath(genpath('curveFiles'))
+%addpath(genpath('SAVED_DATA'))
+
+% Grab hub and shroud data
+% -------------------------------------------------------------------------
+% File names (edit these if your extensions/names are slightly different)
+% -------------------------------------------------------------------------
+hubFile     = 'curveFiles/hub.curve';      % or 'hub.cruve'
+shroudFile  = 'curveFiles/shroud.curve';   % or 'shroud.cruve'
+% -------------------------------------------------------------------------
+% Read hub and shroud (simple 3-column numeric files)
+% -------------------------------------------------------------------------
+[hubX,    hubY,    hubZ]    = readSimpleCurve(hubFile);
+[shroudX, shroudY, shroudZ] = readSimpleCurve(shroudFile);
+
+
+%% Grab profile data
+% Reading in profile, either from .curve or saved .mat
+% profileFile = 'curveFiles/profile.curve';  % or 'profile.cruve'
+% profiles = readProfileCurves(profileFile);
+%%% OR
+load('SAVED_DATA/changed_strct3.mat')
+profiles = changedBladeStrct;
+
+% -------------------------------------------------------------------------
+% Read profiles (multiple 3D lines in one file, separated by '# Profile ...')
+% -------------------------------------------------------------------------
+nProf = numel(profiles);
+
+
+%% Plot
+% -------------------------------------------------------------------------
+% 3D plot: hub, shroud, and all profile curves together
+% -------------------------------------------------------------------------
+figure; hold on; grid on; box on;
+axis equal;
+view(3);
+
+% Plot hub and shroud as thicker black lines
+if ~isempty(hubX)
+    plot3(hubX, hubY, hubZ, 'k-', 'LineWidth', 2);
+end
+if ~isempty(shroudX)
+    plot3(shroudX, shroudY, shroudZ, 'k--', 'LineWidth', 2);
+end
+
+% Color map for profiles
+if nProf > 0
+    cmap = lines(nProf);
+    for i = 1:nProf
+        plot3(profiles(i).X, profiles(i).Y, profiles(i).Z, ...
+              '-', 'LineWidth', 1.2, 'Color', cmap(i,:));
+    end
+end
+
+xlabel('X'); ylabel('Y'); zlabel('Z');
+title('Hub, Shroud, and Blade Profiles (3D)');
+legendEntries = {};
+
+if ~isempty(hubX),    legendEntries{end+1} = 'Hub';    end %#ok<SAGROW>
+if ~isempty(shroudX), legendEntries{end+1} = 'Shroud'; end %#ok<SAGROW>
+for i = 1:nProf
+    if ~isempty(profiles(i).span)
+        legendEntries{end+1} = sprintf('Profile %d (%.1f%% span)', ...
+            profiles(i).id, profiles(i).span); %#ok<SAGROW>
+    else
+        legendEntries{end+1} = sprintf('Profile %d', i); %#ok<SAGROW>
+    end
+end
+
+if ~isempty(legendEntries)
+    legend(legendEntries, 'Location', 'bestoutside');
+end
+
+% -------------------------------------------------------------------------
+% OPTIONAL: separate figure for each profile (uncomment if you want this)
+% -------------------------------------------------------------------------
+
+for i = 1:nProf
+    figure; plot3(profiles(i).X, profiles(i).Y, profiles(i).Z, 'b-', 'LineWidth', 1.5);
+    grid on; axis equal; view(3);
+    xlabel('X'); ylabel('Y'); zlabel('Z');
+    if ~isempty(profiles(i).span)
+        title(sprintf('Profile %d (%.1f%% span)', profiles(i).id, profiles(i).span));
+    else
+        title(sprintf('Profile %d', i));
+    end
+end
+
+
+% ====================== HELPER FUNCTIONS BELOW ===========================
+
+function [x, y, z] = readSimpleCurve(fname)
+    % Reads a simple 3-column text file: x y z
+    % Returns column vectors x, y, z (empty if file missing)
+    x = []; y = []; z = [];
+    if ~isfile(fname)
+        warning('File not found: %s', fname);
+        return;
+    end
+    data = readmatrix(fname, 'FileType', 'text');
+    if isempty(data)
+        warning('No data read from %s', fname);
+        return;
+    end
+    data = data(:,1:3);  % in case there are extra columns
+    x = data(:,1);
+    y = data(:,2);
+    z = data(:,3);
+end
+
+function profiles = readProfileCurves(fname)
+    % Reads profile.curve with multiple sections:
+    %   # Profile 1 at 0.0000%
+    %   <x y z lines>
+    %   (blank line)
+    %   # Profile 2 at 20.00%
+    %   <x y z lines>
+    %
+    % Returns struct array with fields:
+    %   name  - header line (string)
+    %   id    - profile index (number, if parsed)
+    %   span  - span percentage (number, if parsed)
+    %   X,Y,Z - column vectors of coordinates
+
+    profiles = struct('name',{},'id',{},'span',{},'X',{},'Y',{},'Z',{});
+
+    if ~isfile(fname)
+        warning('File not found: %s', fname);
+        return;
+    end
+
+    fid = fopen(fname, 'r');
+    if fid < 0
+        warning('Could not open %s', fname);
+        return;
+    end
+
+    currentX = [];
+    currentY = [];
+    currentZ = [];
+    currentName = '';
+    currentID = [];
+    currentSpan = [];
+
+    while true
+        line = fgetl(fid);
+        if ~ischar(line)
+            % End-of-file: push last profile if we were building one
+            if ~isempty(currentX)
+                profiles(end+1) = makeProfile(currentName, currentID, currentSpan, ...
+                                              currentX, currentY, currentZ); %#ok<AGROW>
+            end
+            break;
+        end
+
+        s = strtrim(line);
+        if isempty(s)
+            % Skip blank lines
+            continue;
+        end
+
+        if startsWith(s, '#')
+            % New profile header. First, store the previous one.
+            if ~isempty(currentX)
+                profiles(end+1) = makeProfile(currentName, currentID, currentSpan, ...
+                                              currentX, currentY, currentZ); %#ok<AGROW>
+            end
+
+            currentName = strtrim(s(2:end)); % drop '#'
+            [currentID, currentSpan] = parseProfileHeader(currentName);
+
+            currentX = [];
+            currentY = [];
+            currentZ = [];
+        else
+            % Numeric data line
+            nums = sscanf(s, '%f');
+            if numel(nums) >= 3
+                currentX(end+1,1) = nums(1); %#ok<AGROW>
+                currentY(end+1,1) = nums(2); %#ok<AGROW>
+                currentZ(end+1,1) = nums(3); %#ok<AGROW>
+            end
+        end
+    end
+
+    fclose(fid);
+end
+
+function p = makeProfile(name, idVal, spanVal, X, Y, Z)
+    p.name = name;
+    p.id   = idVal;
+    p.span = spanVal;
+    p.X    = X;
+    p.Y    = Y;
+    p.Z    = Z;
+end
+
+function [idVal, spanVal] = parseProfileHeader(name)
+    % Tries to parse something like "Profile 1 at 20.00%"
+    idVal = [];
+    spanVal = [];
+
+    tokens = regexp(name, 'Profile\s+(\d+)\s+at\s+([\d\.]+)%', 'tokens', 'once');
+    if ~isempty(tokens)
+        idVal   = str2double(tokens{1});
+        spanVal = str2double(tokens{2});
+    end
+end

@@ -1,0 +1,28 @@
+function new_z_span = editSingleElementZ(spanZ, spanY, cp_strct, angle_delta_value)
+
+    % Find centerpoint
+    z_med = median(spanZ);
+    med_index = spanZ==z_med;
+    t_at_med = spanY(med_index);
+    
+    % Set leading edge polar coords, leading angle always third quad
+    [cp_r, cp_theta] = createPolar(cp_strct.z_coord, cp_strct.t_coord, z_med, t_at_med);
+
+
+
+    % Get angle
+    for i = 1:length(spanZ)
+        
+        z_point = spanZ(i);
+        t_point = spanY(i);
+        
+        [r, theta] = createPolar(z_point, t_point, z_med, t_at_med);
+
+        new_z = changeZ_viaAngle(r, theta, z_point, t_point, cp_r, cp_theta, angle_delta_value);
+    end
+
+    % forgot why here, check
+    %cp_strct.trailing_angle = atand( (zmax - z_med) / (t_at_max - t_at_med) );
+    %cp_strct.leading_angle = atand( (z_med - zmin) / (t_at_med - t_at_min) );
+
+end
