@@ -3,8 +3,7 @@ function [z_new, t_new] = change_viaAngle(r, theta, angle_delta_value, z_med, t_
     % Set wanted global angle
     wanted_angle = theta + angle_delta_value;
 
-    fprintf("theta: %f  ", theta)
-    fprintf("wanted_angle: %f", wanted_angle)
+    fprintf("wanted_angle: 
 
     % Safegaurd for quad 4 to quad 1
     if wanted_angle > 360

@@ -1,0 +1,32 @@
+function SH_strc = trimSH(SH_strc, profile)
+% SH is shroud or hub structure
+% profile is (1) or (end) index
+
+    % Set profile bounds, using Z for now??
+    maxZ_bound = max(profile.Z);
+    minZ_bound = min(profile.Z);
+
+    remove_indices = [];
+
+    % Use Z as conditional for now??
+    for i = 1:length(SH_strct.Z)
+        disp(i)
+        if SH_strc.Z(i) >= minZ_bound && SH_strc.Z(i) <= maxZ_bound
+            % Have inlcusion as first conditional since want two bounds
+            i = i - 1;
+            continue
+        else
+            % Remove x,y,z from index
+            SH_strc.X(i) = []; SH_strc.Y(i) = []; SH_strc.Z(i) = [];
+            i = i - 2;
+        end
+    end
+
+end
+
+            
+            
+            % indices_to_remove = [1,2]
+            % list(indice_to_remove) = [];
+
+

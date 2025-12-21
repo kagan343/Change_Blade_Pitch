@@ -8,30 +8,24 @@ addpath(genpath('Scaling Code'))
 addpath(genpath('curveFiles'))
 %addpath(genpath('SAVED_DATA'))
 
-% Grab hub and shroud data
-% -------------------------------------------------------------------------
-% File names (edit these if your extensions/names are slightly different)
-% -------------------------------------------------------------------------
-hubFile     = 'curveFiles/hub.curve';      % or 'hub.cruve'
-shroudFile  = 'curveFiles/shroud.curve';   % or 'shroud.cruve'
-% -------------------------------------------------------------------------
-% Read hub and shroud (simple 3-column numeric files)
-% -------------------------------------------------------------------------
-[hubX,    hubY,    hubZ]    = readSimpleCurve(hubFile);
-[shroudX, shroudY, shroudZ] = readSimpleCurve(shroudFile);
+orig = 1;
 
-
-%% Grab profile data
-% Reading in profile, either from .curve or saved .mat
-% profileFile = 'curveFiles/profile.curve';  % or 'profile.cruve'
-% profiles = readProfileCurves(profileFile);
-%%% OR
-load('SAVED_DATA/changed_strct3.mat')
+% Load profiles (always the changed value)
+load('SAVED_DATA/plus10.mat')
 profiles = changedBladeStrct;
+% Read in files
+hubFile = 'curveFiles/hub.curve'; % or 'hub.cruve'
+shroudFile = 'curveFiles/shroud.curve'; % or 'shroud.cruve'
 
-% -------------------------------------------------------------------------
-% Read profiles (multiple 3D lines in one file, separated by '# Profile ...')
-% -------------------------------------------------------------------------
+if orig == 0
+    % Grab hub and shroud data
+    [hubX,    hubY,    hubZ]    = readSimpleCurve(hubFile);
+    [shroudX, shroudY, shroudZ] = readSimpleCurve(shroudFile);
+elseif orig == 1
+    hubX = changedHubStrct.X; hubY = changedHubStrct.Y; hubZ = changedHubStrct.Z;
+    shroudX = changedShroudStrct.X; shroudY = changedShroudStrct.Y; shroudZ = changedShroudStrct.Z;
+end
+
 nProf = numel(profiles);
 
 
@@ -82,17 +76,17 @@ end
 % -------------------------------------------------------------------------
 % OPTIONAL: separate figure for each profile (uncomment if you want this)
 % -------------------------------------------------------------------------
-
-for i = 1:nProf
-    figure; plot3(profiles(i).X, profiles(i).Y, profiles(i).Z, 'b-', 'LineWidth', 1.5);
-    grid on; axis equal; view(3);
-    xlabel('X'); ylabel('Y'); zlabel('Z');
-    if ~isempty(profiles(i).span)
-        title(sprintf('Profile %d (%.1f%% span)', profiles(i).id, profiles(i).span));
-    else
-        title(sprintf('Profile %d', i));
-    end
-end
+% 
+% for i = 1:nProf
+%     figure; plot3(profiles(i).X, profiles(i).Y, profiles(i).Z, 'b-', 'LineWidth', 1.5);
+%     grid on; axis equal; view(3);
+%     xlabel('X'); ylabel('Y'); zlabel('Z');
+%     if ~isempty(profiles(i).span)
+%         title(sprintf('Profile %d (%.1f%% span)', profiles(i).id, profiles(i).span));
+%     else
+%         title(sprintf('Profile %d', i));
+%     end
+% end
 
 
 % ====================== HELPER FUNCTIONS BELOW ===========================

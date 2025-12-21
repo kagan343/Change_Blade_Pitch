@@ -1,4 +1,4 @@
-function superStrct = defineProfileStrct(hubFile, shroudFile, profileFile)
+function [hub, shroud, superStrct] = defineProfileStrct(hubFile, shroudFile, profileFile)
     %% Defining profile set up
     % Shroud and Hub are basic #x3 files
     [hubX, hubY, hubZ] = readSimpleCurve(hubFile); % for graphing

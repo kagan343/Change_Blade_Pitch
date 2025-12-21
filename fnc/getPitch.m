@@ -34,12 +34,12 @@ function [angle, cp_strct] = getPitch(spanZ, spanY, first_span)
         cp_strct.trailing_angle = atand( (zmax - z_med) / (t_at_max - t_at_med) );
         cp_strct.leading_angle = atand( (z_med - zmin) / (t_at_med - t_at_min) );
 
-        figure;
-        hold on
-        plot(spanZ, spanY);
-        plot([zmin zmax], [t_at_min t_at_max])
-        scatter(z_med, t_at_med)
-        hold off
+        % figure;
+        % hold on
+        % plot(spanZ, spanY);
+        % plot([zmin zmax], [t_at_min t_at_max])
+        % scatter(z_med, t_at_med)
+        % hold off
     else
         cp_strct = 0;
     end
