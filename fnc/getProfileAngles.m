@@ -14,8 +14,8 @@ function [angle_dictionary, avg_angle, angle_diff, cp_strct] = getProfileAngles(
             cp_strct = temp_cp_strct;
             first_span = first_span + 1; % Get first_span off of 0
         end
-        angle_dictionary(current_row.span) = temp_angle; % Set dict with span value
-        angle_array(i) = temp_angle;
+        angle_dictionary(current_row.span) = temp_angle(1); % Set dict with span value
+        angle_array(i) = temp_angle(1);
     end
 
     avg_angle = mean(angle_array);

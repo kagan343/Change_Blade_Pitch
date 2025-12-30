@@ -8,19 +8,20 @@ addpath(genpath('Scaling Code'))
 addpath(genpath('curveFiles'))
 %addpath(genpath('SAVED_DATA'))
 
-orig = 1;
+orig = 0;
 
-% Load profiles (always the changed value)
-load('SAVED_DATA/plus10.mat')
-profiles = changedBladeStrct;
-% Read in files
-hubFile = 'curveFiles/hub.curve'; % or 'hub.cruve'
-shroudFile = 'curveFiles/shroud.curve'; % or 'shroud.cruve'
-
+%%% Load profiles (always the changed value)
+% load('SAVED_DATA/plus10.mat')
+% profiles = changedBladeStrct;
+%%% OR Read in files
+hubFile = 'SAVED_DATA/6.000_scaled_hub.curve';
+shroudFile = 'SAVED_DATA/6.000_scaled_shroud.curve';
+profileFile = 'SAVED_DATA/6.000_scaled_profile.curve';
 if orig == 0
     % Grab hub and shroud data
     [hubX,    hubY,    hubZ]    = readSimpleCurve(hubFile);
     [shroudX, shroudY, shroudZ] = readSimpleCurve(shroudFile);
+    profiles = readProfileCurves(profileFile);
 elseif orig == 1
     hubX = changedHubStrct.X; hubY = changedHubStrct.Y; hubZ = changedHubStrct.Z;
     shroudX = changedShroudStrct.X; shroudY = changedShroudStrct.Y; shroudZ = changedShroudStrct.Z;
